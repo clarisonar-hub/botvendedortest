@@ -11,67 +11,72 @@
     .produto { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; }
     .produto:last-child { border-bottom:0; }
     .produto label { font-weight:600; }
-    input[type="number"] { width:72px; padding:6px; border-radius:6px; border:1px solid #ddd; text-align:center; }
+    input[type="number"], input[type="text"], select { width:100%; padding:6px; border-radius:6px; border:1px solid #ddd; text-align:left; margin-top:4px; }
     .total { text-align:right; margin-top:12px; font-size:18px; font-weight:700; }
     .info { font-size:13px; color:#555; margin-top:8px; }
     .btn { display:inline-block; margin-top:16px; padding:12px 18px; background:#27ae60; color:white; text-decoration:none; border-radius:8px; cursor:pointer; border:none; font-weight:700; }
     .btn:disabled { opacity:0.6; cursor:not-allowed; }
-    .row { display:flex; gap:12px; margin-top:12px; }
-    .row input[type="text"] { flex:1; padding:8px; border-radius:6px; border:1px solid #ddd; }
+    .row { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+    .row > div { flex:1; min-width:120px; }
     .small { font-size:13px; color:#666; }
     footer { text-align:center; margin-top:18px; color:#888; font-size:13px; }
-    @media(max-width:520px){ .produto { flex-direction:column; align-items:flex-start; gap:8px } input[type="number"]{ width:100% } .row{flex-direction:column} }
+    @media(max-width:520px){ .produto { flex-direction:column; align-items:flex-start; gap:8px } }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>BotVendedortest1 — Cardápio</h1>
+
+    <!-- Produtos -->
     <div class="produto">
-      <label>Combo de Sushi Simples</label>
-      <div>
-        <span class="small">R$25,00</span>
-        <input type="number" id="q_combo" min="0" value="0" />
-      </div>
+      <label>Combo de Sushi Simples (R$25,00)</label>
+      <input type="number" id="q_combo" min="0" value="0" />
     </div>
 
     <div class="produto">
-      <label>Pastel em Cone</label>
-      <div>
-        <span class="small">R$30,00</span>
-        <input type="number" id="q_pastel" min="0" value="0" />
-      </div>
+      <label>Pastel em Cone (R$30,00)</label>
+      <input type="number" id="q_pastel" min="0" value="0" />
     </div>
 
     <div class="produto">
-      <label>Lanche Econômico</label>
-      <div>
-        <span class="small">R$10,00</span>
-        <input type="number" id="q_lanche" min="0" value="0" />
-      </div>
+      <label>Lanche Econômico (R$10,00)</label>
+      <input type="number" id="q_lanche" min="0" value="0" />
     </div>
 
     <div class="produto">
-      <label>Refrigerante (lata)</label>
-      <div>
-        <span class="small">R$8,00</span>
-        <input type="number" id="q_refrigerante" min="0" value="0" />
-      </div>
+      <label>Refrigerante (lata) R$8,00</label>
+      <input type="number" id="q_refrigerante" min="0" value="0" />
     </div>
 
     <div class="produto">
-      <label>Água 500 ml</label>
-      <div>
-        <span class="small">R$5,00</span>
-        <input type="number" id="q_agua" min="0" value="0" />
-      </div>
+      <label>Água 500 ml (R$5,00)</label>
+      <input type="number" id="q_agua" min="0" value="0" />
     </div>
 
+    <!-- Dados do cliente -->
     <div class="row">
-      <input type="text" id="cliente_nome" placeholder="Nome do cliente (ex: João)" />
-      <input type="text" id="cliente_end" placeholder="Endereço / Referência (opcional)" />
+      <div>
+        <label>Nome do cliente</label>
+        <input type="text" id="cliente_nome" placeholder="Ex: João" />
+      </div>
+      <div>
+        <label>Endereço</label>
+        <input type="text" id="cliente_end" placeholder="Rua/Referência" />
+      </div>
+      <div>
+        <label>Número</label>
+        <input type="text" id="cliente_num" placeholder="Número do endereço" />
+      </div>
+      <div>
+        <label>Pagamento</label>
+        <select id="cliente_pag">
+          <option value="Pix">Pix</option>
+          <option value="Crédito">Crédito</option>
+          <option value="Débito">Débito</option>
+        </select>
+      </div>
     </div>
 
-    <div class="info">Obs: Campo <strong>Nome</strong> recomendado para identificar o pedido no WhatsApp.</div>
     <div class="total">Total: R$ <span id="total_val">0,00</span></div>
 
     <button id="btnPedido" class="btn" onclick="finalizarPedido()">Finalizar Pedido (Enviar pro WhatsApp)</button>
@@ -84,7 +89,6 @@
   </div>
 
   <script>
-    // Preços
     const PRECOS = {
       combo: 25.00,
       pastel: 30.00,
@@ -93,7 +97,6 @@
       agua: 5.00
     };
 
-    // Elementos
     const inputs = {
       combo: document.getElementById('q_combo'),
       pastel: document.getElementById('q_pastel'),
@@ -104,7 +107,6 @@
     const totalVal = document.getElementById('total_val');
     const btn = document.getElementById('btnPedido');
 
-    // Atualizar total dinamicamente
     function calcularTotal() {
       const t =
         (Number(inputs.combo.value) * PRECOS.combo) +
@@ -120,7 +122,6 @@
     Object.values(inputs).forEach(inp => inp.addEventListener('input', calcularTotal));
     calcularTotal();
 
-    // ID do pedido (timestamp legível)
     function gerarPedidoID() {
       const d = new Date();
       const Y = String(d.getFullYear());
@@ -129,7 +130,7 @@
       const h = String(d.getHours()).padStart(2,'0');
       const m = String(d.getMinutes()).padStart(2,'0');
       const s = String(d.getSeconds()).padStart(2,'0');
-      return `${Y}${M}${D}-${h}${m}${s}`; // ex: 20251002-153045
+      return `${Y}${M}${D}-${h}${m}${s}`;
     }
 
     function finalizarPedido() {
@@ -146,10 +147,11 @@
 
       const nome = (document.getElementById('cliente_nome').value || 'Não informado').trim();
       const endereco = (document.getElementById('cliente_end').value || 'Não informado').trim();
+      const numero = (document.getElementById('cliente_num').value || 'Não informado').trim();
+      const pagamento = document.getElementById('cliente_pag').value;
       const pedidoId = gerarPedidoID();
-      const siteOrigem = 'botvendedortest1'; // carimbo obrigatório
+      const siteOrigem = 'botvendedortest1';
 
-      // Montar lista de itens legível
       let itens = '';
       if (qCombo > 0) itens += `${qCombo}x Combo de Sushi Simples (R$${(PRECOS.combo*qCombo).toFixed(2)})%0A`;
       if (qPastel > 0) itens += `${qPastel}x Pastel em Cone (R$${(PRECOS.pastel*qPastel).toFixed(2)})%0A`;
@@ -159,21 +161,18 @@
 
       const total = calcularTotal();
 
-      // Mensagem final que vai pro WhatsApp (com carimbo e ID)
       let mensagem = `📦 *Novo Pedido*%0A`;
       mensagem += `ID: ${pedidoId}%0A`;
       mensagem += `Origem: ${siteOrigem}%0A%0A`;
       mensagem += `Cliente: ${nome}%0A`;
-      mensagem += `Endereço/Ref.: ${endereco}%0A%0A`;
+      mensagem += `Endereço: ${endereco}, Nº ${numero}%0A`;
+      mensagem += `Pagamento: ${pagamento}%0A%0A`;
       mensagem += `Itens:%0A${itens}%0A`;
       mensagem += `Total: R$ ${total.toFixed(2)}%0A%0A`;
       mensagem += `Obs: Enviar confirmação e forma de pagamento.`;
 
-      // Seu número atualizado: +55 47 99206-3317
       const numeroLoja = '5547992063317';
       const link = `https://wa.me/${numeroLoja}?text=${mensagem}`;
-
-      // abrir WhatsApp do cliente com a mensagem pronta
       window.open(link, '_blank');
     }
   </script>
