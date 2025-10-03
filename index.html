@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BotVendedortest1 — Pedido</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; color:#222; background:#f7f7f7; }
+    .card { background:white; padding:18px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); max-width:720px; margin:auto; }
+    h1 { margin:0 0 12px 0; color:#1f6feb; }
+    .produto { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; }
+    .produto:last-child { border-bottom:0; }
+    .produto label { font-weight:600; }
+    input[type="number"] { width:72px; padding:6px; border-radius:6px; border:1px solid #ddd; text-align:center; }
+    .total { text-align:right; margin-top:12px; font-size:18px; font-weight:700; }
+    .info { font-size:13px; color:#555; margin-top:8px; }
+    .btn { display:inline-block; margin-top:16px; padding:12px 18px; background:#27ae60; color:white; text-decoration:none; border-radius:8px; cursor:pointer; border:none; font-weight:700; }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .row { display:flex; gap:12px; margin-top:12px; }
+    .row input[type="text"] { flex:1; padding:8px; border-radius:6px; border:1px solid #ddd; }
+    .small { font-size:13px; color:#666; }
+    footer { text-align:center; margin-top:18px; color:#888; font-size:13px; }
+    @media(max-width:520px){ .produto { flex-direction:column; align-items:flex-start; gap:8px } input[type="number"]{ width:100% } .row{flex-direction:column} }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>BotVendedortest1 — Cardápio</h1>
+    <div class="produto">
+      <label>Combo de Sushi Simples</label>
+      <div>
+        <span class="small">R$25,00</span>
+        <input type="number" id="q_combo" min="0" value="0" />
+      </div>
+    </div>
+
+    <div class="produto">
+      <label>Pastel em Cone</label>
+      <div>
+        <span class="small">R$30,00</span>
+        <input type="number" id="q_pastel" min="0" value="0" />
+      </div>
+    </div>
+
+    <div class="produto">
+      <label>Lanche Econômico</label>
+      <div>
+        <span class="small">R$10,00</span>
+        <input type="number" id="q_lanche" min="0" value="0" />
+      </div>
+    </div>
+
+    <div class="produto">
+      <label>Refrigerante (lata)</label>
+      <div>
+        <span class="small">R$8,00</span>
+        <input type="number" id="q_refrigerante" min="0" value="0" />
+      </div>
+    </div>
+
+    <div class="produto">
+      <label>Água 500 ml</label>
+      <div>
+        <span class="small">R$5,00</span>
+        <input type="number" id="q_agua" min="0" value="0" />
+      </div>
+    </div>
+
+    <div class="row">
+      <input type="text" id="cliente_nome" placeholder="Nome do cliente (ex: João)" />
+      <input type="text" id="cliente_end" placeholder="Endereço / Referência (opcional)" />
+    </div>
+
+    <div class="info">Obs: Campo <strong>Nome</strong> recomendado para identificar o pedido no WhatsApp.</div>
+    <div class="total">Total: R$ <span id="total_val">0,00</span></div>
+
+    <button id="btnPedido" class="btn" onclick="finalizarPedido()">Finalizar Pedido (Enviar pro WhatsApp)</button>
+
+    <div class="info" style="margin-top:10px;">
+      Cada pedido inclui automaticamente um <strong>carimbo</strong> de origem: <code>botvendedortest1</code> e um ID único para controle.
+    </div>
+
+    <footer>Feito com ❤️ — BotVendedortest1</footer>
+  </div>
+
+  <script>
+    // Preços
+    const PRECOS = {
+      combo: 25.00,
+      pastel: 30.00,
+      lanche: 10.00,
+      refrigerante: 8.00,
+      agua: 5.00
+    };
+
+    // Elementos
+    const inputs = {
+      combo: document.getElementById('q_combo'),
+      pastel: document.getElementById('q_pastel'),
+      lanche: document.getElementById('q_lanche'),
+      refrigerante: document.getElementById('q_refrigerante'),
+      agua: document.getElementById('q_agua')
+    };
+    const totalVal = document.getElementById('total_val');
+    const btn = document.getElementById('btnPedido');
+
+    // Atualizar total dinamicamente
+    function calcularTotal() {
+      const t =
+        (Number(inputs.combo.value) * PRECOS.combo) +
+        (Number(inputs.pastel.value) * PRECOS.pastel) +
+        (Number(inputs.lanche.value) * PRECOS.lanche) +
+        (Number(inputs.refrigerante.value) * PRECOS.refrigerante) +
+        (Number(inputs.agua.value) * PRECOS.agua);
+      totalVal.textContent = t.toFixed(2).replace('.', ',');
+      btn.disabled = t === 0;
+      return t;
+    }
+
+    Object.values(inputs).forEach(inp => inp.addEventListener('input', calcularTotal));
+    calcularTotal();
+
+    // ID do pedido (timestamp legível)
+    function gerarPedidoID() {
+      const d = new Date();
+      const Y = String(d.getFullYear());
+      const M = String(d.getMonth()+1).padStart(2,'0');
+      const D = String(d.getDate()).padStart(2,'0');
+      const h = String(d.getHours()).padStart(2,'0');
+      const m = String(d.getMinutes()).padStart(2,'0');
+      const s = String(d.getSeconds()).padStart(2,'0');
+      return `${Y}${M}${D}-${h}${m}${s}`; // ex: 20251002-153045
+    }
+
+    function finalizarPedido() {
+      const qCombo = Number(inputs.combo.value);
+      const qPastel = Number(inputs.pastel.value);
+      const qLanche = Number(inputs.lanche.value);
+      const qRefri = Number(inputs.refrigerante.value);
+      const qAgua = Number(inputs.agua.value);
+
+      if (qCombo + qPastel + qLanche + qRefri + qAgua <= 0) {
+        alert('Escolha ao menos 1 item para fazer o pedido.');
+        return;
+      }
+
+      const nome = (document.getElementById('cliente_nome').value || 'Não informado').trim();
+      const endereco = (document.getElementById('cliente_end').value || 'Não informado').trim();
+      const pedidoId = gerarPedidoID();
+      const siteOrigem = 'botvendedortest1'; // carimbo obrigatório
+
+      // Montar lista de itens legível
+      let itens = '';
+      if (qCombo > 0) itens += `${qCombo}x Combo de Sushi Simples (R$${(PRECOS.combo*qCombo).toFixed(2)})%0A`;
+      if (qPastel > 0) itens += `${qPastel}x Pastel em Cone (R$${(PRECOS.pastel*qPastel).toFixed(2)})%0A`;
+      if (qLanche > 0) itens += `${qLanche}x Lanche Econômico (R$${(PRECOS.lanche*qLanche).toFixed(2)})%0A`;
+      if (qRefri > 0) itens += `${qRefri}x Refrigerante lata (R$${(PRECOS.refrigerante*qRefri).toFixed(2)})%0A`;
+      if (qAgua > 0) itens += `${qAgua}x Água 500 ml (R$${(PRECOS.agua*qAgua).toFixed(2)})%0A`;
+
+      const total = calcularTotal();
+
+      // Mensagem final que vai pro WhatsApp (com carimbo e ID)
+      let mensagem = `📦 *Novo Pedido*%0A`;
+      mensagem += `ID: ${pedidoId}%0A`;
+      mensagem += `Origem: ${siteOrigem}%0A%0A`;
+      mensagem += `Cliente: ${nome}%0A`;
+      mensagem += `Endereço/Ref.: ${endereco}%0A%0A`;
+      mensagem += `Itens:%0A${itens}%0A`;
+      mensagem += `Total: R$ ${total.toFixed(2)}%0A%0A`;
+      mensagem += `Obs: Enviar confirmação e forma de pagamento.`;
+
+      // Substitua pelo seu número com DDI+DDD e número (ex: 5511999999999)
+      const numeroLoja = '55SEUDDDNUM'; // <-- substituir aqui pelo seu número (sem +, sem espaços)
+      const link = `https://wa.me/${numeroLoja}?text=${mensagem}`;
+
+      // abrir o WhatsApp do cliente com a mensagem pronta
+      window.open(link, '_blank');
+    }
+  </script>
+</body>
+</html>
